@@ -45,11 +45,17 @@ class Controller_Base extends Controller_Rest
             return $json;
         }
     }
-    protected function encodeData($data)
+    protected function encode($data)
     {
-        $encodeData = JWT::encode($data, MY_KEY);
-        return $encodeData;
+        return  JWT::encode($data, MY_KEY);
+        
     }
+    protected function decode($data)
+    {
+        return  JWT::decode($data, MY_KEY, array('HS256'));
+        
+    }
+
 	protected function encodeToken($userName, $password, $id, $email, $id_role)
     {
         $token = array(
@@ -88,38 +94,43 @@ class Controller_Base extends Controller_Rest
                                  'id' => $decodedToken->id]]);
                 if($query != null)
                 {
-                    return true;
+                    $json = array(
+                    'code' => 200,
+                    'message' => 'Usuario autenticado',
+                    'authenticated' => true,
+                    'data' => $token
+                    );
+                    return json_encode($json);
+
                 }else{
-                    return false;
+                    $json = $this->response(array(
+                    'code' => 401,
+                    'message' => 'Usuario no autenticado',
+                    'authenticated' => false,
+                    'data' => null
+                    ));
+                    return $json;
+                
                 }
             }else{
-                return false;
+                $json = $this->response(array(
+                    'code' => 401,
+                    'message' => 'Usuario no autenticado',
+                    'authenticated' => false,
+                    'data' => null
+                    ));
+                    return $json;
             }
         } 
         catch (Exception $UnexpectedValueException)
         {
-            return false;
-        }
-    }
-    public function get_default_auth()
-    {  
-        $auth = self::authenticate();
-        if($auth == true)
-        {
-            $json = $this->response(array(
-                    'code' => 200,
-                    'message' => 'Usuario autenticado',
-                    'data' => null
-            ));
-            return $json;
-        }else{
             $json = $this->response(array(
                     'code' => 401,
-                    'message' => 'Usuarios no autenticado',
+                    'message' => 'Usuario no autenticado',
+                    'authenticated' => false,
                     'data' => null
-            ));
-            return $json;
+                    ));
+                    return $json;
         }
-        
     }
 }

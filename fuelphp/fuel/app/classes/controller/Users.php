@@ -10,11 +10,12 @@ class Controller_Users extends Controller_Base
     {
     		$user = new Model_Users();
             $user->userName = $input['userName'];
-            $user->password = $this->encodeData($input['password']);
-            //$user->password = $this->encodeData($input['password']);
+            $user->password = $this->encode($input['password']);
             $user->email = $input['email'];
             $user->id_device = $input['id_device'];
             $user->id_role = $this->idUser;
+            $user->x = $input['x'];
+            $user->y = $input['y'];
             return $user;
     }
 
@@ -22,7 +23,7 @@ class Controller_Users extends Controller_Base
     {
     	$userExists = Model_Users::find('all', 
     								array('where' => array(
-    													array('email', '=', $user->email)
+    													array('email', '=', $user->email),
     														)
     									)
     							);
@@ -54,7 +55,29 @@ class Controller_Users extends Controller_Base
                     'message' => 'Algun paramentro esta vacio'
                 ));
                 return $json;
-            }if(!empty($_POST['userName']) && !empty($_POST['password']) && !empty($_POST['email'])){
+            }if(isset($_POST['x']) || isset($_POST['y'])){
+            		if(empty($_POST['x']) || empty($_POST['y'])){
+	            		$json = $this->response(array(
+	                    'code' => 400,
+	                    'message' => 'Coordenadas vacias'
+	                	));
+	                	return $json;
+	                }
+            	}else{
+            		$json = $this->response(array(
+	                    'code' => 400,
+	                    'message' => 'Coordenadas no definidas'
+	                	));
+	                	return $json;
+            	}
+            if(!empty($_POST['userName']) && !empty($_POST['password']) && !empty($_POST['email'])){
+            	if(strlen($_POST['password']) < 5){
+            		$json = $this->response(array(
+                    'code' => 400,
+                    'message' => 'La contraseña debe tener al menos 5 caracteres'
+                ));
+                return $json;
+            	}
 				$input = $_POST;
 	            $newUser = $this->newUser($input);
 	           	$json = $this->saveUser($newUser);
@@ -88,7 +111,7 @@ class Controller_Users extends Controller_Base
 	            $user = Model_Users::find('all', 
 		            						array('where' => array(
 		            							array('userName', '=', $input['userName']), 
-		            							array('password', '=', $this->encodeData($input['password']))
+		            							array('password', '=', $this->encode($input['password']))
 		            							)
 		            						)
 		            					);
@@ -152,7 +175,7 @@ class Controller_Users extends Controller_Base
 		           					);
 		    if($user != null){
 		    	$user = reset($user);
-		    	$dataUser = [$user->userName, $user->password,$user->id,$user->email,$user->id_role]
+		    	$dataUser = array($user->userName, $user->password,$user->id,$user->email,$user->id_role);
 		    	
 		    	$token = $this->encodeData($dataUser);
 		        $json = $this->response(array(
@@ -222,7 +245,38 @@ class Controller_Users extends Controller_Base
 	}
 	public function get_show()
 	{
-		
-	}
-
+		$authenticated = $this->authenticate();
+    	$arrayAuthenticated = json_decode($authenticated, true);
+    	
+    	 if($arrayAuthenticated['authenticated']){
+	    		$decodedToken = JWT::decode($arrayAuthenticated["data"], MY_KEY, array('HS256'));
+	    		$story = Model_Stories::find('all', 
+			            						array('where' => array(
+			            							array('id_user', '=', $decodedToken->id), 
+			            							)
+			            						)
+			            					);
+	    		if(!empty($story)){
+	    			return $this->response(Arr::reindex($story));
+	    		}else{
+	    			
+	    			$json = $this->response(array(
+				       		     'code' => 202,
+				       		     'message' => 'Aun no tienes ninguna historia',
+				       		    	'data' => ''
+				       		 	));
+				       		 	return $json;
+	    			}
+    		}else{
+    			
+    			$json = $this->response(array(
+			       		     'code' => 401,
+			       		     'message' => 'NO AUTORIZACION',
+			       		    	'data' => ''
+			       		 	));
+			       		 	return $json;
+    		}
+    }
 }
+
+

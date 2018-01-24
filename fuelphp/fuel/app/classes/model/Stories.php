@@ -7,7 +7,7 @@ class Model_Stories extends Orm\Model
     protected static $_properties = array
     ('id' => array('data_type'=>'int'), // both validation & typing observers will ignore the PK
      'photo' => array(
-            'data_type' => 'url',
+            'data_type' => 'varchar',
             'validation' => array('required', 'max_length' => array(100))
         ),
      'comment' => array(
@@ -24,7 +24,7 @@ class Model_Stories extends Orm\Model
     );
     protected static $_belongs_to = array(
         'user' => array(
-            'key_from' => 'id_users',
+            'key_from' => 'id_user',
             'model_to' => 'Model_Users',
             'key_to' => 'id',
             'cascade_save' => true,

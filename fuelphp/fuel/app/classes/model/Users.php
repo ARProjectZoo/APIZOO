@@ -16,7 +16,7 @@ class Model_Users extends Orm\Model
             ),
      'password' => array(
                 'data_type' => 'varchar',
-                'validation' => array('required', 'max_length' => array(30))   
+                'validation' => array('required', 'max_length' => array(200))   
             ),
      'id_device' => array(
                 'data_type' => 'varchar',
@@ -24,7 +24,17 @@ class Model_Users extends Orm\Model
             ),
      'id_role' => array(
                 'data_type' => 'int',
-                'validation' => array('required', 'max_length' => array(100)))   
+                'validation' => array('required', 'max_length' => array(100))
+                ),
+     'x' => array(
+                'data_type' => 'varchar',
+                'validation' => array('required', 'max_length' => array(100))
+                ),
+     'y' => array(
+                'data_type' => 'varchar',
+                'validation' => array('required', 'max_length' => array(100))
+                )
+
     );
     protected static $_belongs_to = array(
         'role' => array(
